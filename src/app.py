@@ -16,7 +16,7 @@ WIDTH = 120
 TOTAL_TREE_BODY_LINES = 1 + (HEIGHT // 2) + 5
 
 # 動畫更新率（FPS）
-ANIMATION_FPS =  5  # 30 FPS 提供流暢的動畫效果
+ANIMATION_FPS = 5  # 30 FPS 提供流暢的動畫效果
 FRAME_TIME = 1.0 / ANIMATION_FPS  # 每幀時間（約 0.033 秒）
 
 # Colors (ANSI escape codes)
@@ -39,6 +39,11 @@ ALL_COLORS = [RED, YELLOW, BLUE, CYAN, MAGENTA, ORANGE, GOLD, PINK]
 # ANSI 清屏序列（避免使用系統命令造成的閃爍）
 CLEAR_SCREEN = "\033[2J"  # 清除整個畫面
 CURSOR_HOME = "\033[H"  # 將游標移到左上角
+
+# 終端機替代緩衝區（避免閃爍的最佳方案）
+ALTERNATE_BUFFER_ON = "\033[?1049h"  # 啟用替代緩衝區
+ALTERNATE_BUFFER_OFF = "\033[?1049l"  # 關閉替代緩衝區
+CLEAR_ALTERNATE = "\033[2J\033[H"  # 清除替代緩衝區並移動游標
 
 
 # --- Utility Functions ---
@@ -133,14 +138,19 @@ def _get_tree_line_content(line_idx: int, terminal_width: int) -> str:
     return ""  # Fallback to empty line
 
 
-def draw_tree(countdown_str: str):
+def draw_tree(countdown_str: str, first_frame: bool = False):
     """Draws the large shining Christmas tree and the countdown timer."""
 
     # 獲取終端機尺寸
     terminal_width, terminal_height = get_terminal_size()
 
-    # 使用 ANSI 序列清屏（避免閃爍）
-    print(CLEAR_SCREEN + CURSOR_HOME, end="")
+    # 使用替代緩衝區清屏（完全避免閃爍）
+    if first_frame:
+        # 第一幀：啟用替代緩衝區並清除
+        print(ALTERNATE_BUFFER_ON + CLEAR_ALTERNATE, end="", flush=True)
+    else:
+        # 後續幀：在替代緩衝區內清除並移動游標（不會有閃爍）
+        print(CLEAR_ALTERNATE, end="", flush=True)
 
     # 計算總內容高度（樹 + 訊息 + 倒數計時器 + 空白行）
     total_content_lines = TOTAL_TREE_BODY_LINES + 4  # 樹 + 訊息行 + 倒數行 + 額外空白
@@ -188,19 +198,25 @@ def animate():
 
     # 程式啟動提示 (英文)
     print("Drawing Giant Christmas Tree with Countdown. Press Ctrl+C to stop...")
+    time.sleep(0.5)  # 短暫延遲讓用戶看到提示
 
     try:
+        frame_count = 0
         while True:
             # 1. 計算倒數時間
             countdown_str, time_remaining = get_countdown()
 
-            # 2. 繪製（每次循環都繪製，讓燈泡閃爍更流暢）
-            draw_tree(countdown_str)
+            # 2. 繪製（第一幀啟用替代緩衝區，後續只更新內容）
+            is_first_frame = frame_count == 0
+            draw_tree(countdown_str, first_frame=is_first_frame)
+            frame_count += 1
 
-            # 3. 使用固定高更新率（30 FPS）來減少閃爍
+            # 3. 使用固定更新率
             time.sleep(FRAME_TIME)
 
     except KeyboardInterrupt:
+        # 恢復正常緩衝區
+        print(ALTERNATE_BUFFER_OFF, end="", flush=True)
         # 程式停止提示 (英文)
         print("\nAnimation stopped. Merry Christmas!")
 
