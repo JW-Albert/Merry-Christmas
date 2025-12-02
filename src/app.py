@@ -32,6 +32,10 @@ BROWN = "\033[38;5;94m"  # ANSI 256 color code for Brown
 # 所有會閃爍的燈泡顏色
 ALL_COLORS = [RED, YELLOW, BLUE, CYAN, MAGENTA, ORANGE, GOLD, PINK]
 
+# ANSI 清屏序列（避免使用系統命令造成的閃爍）
+CLEAR_SCREEN = "\033[2J"  # 清除整個畫面
+CURSOR_HOME = "\033[H"  # 將游標移到左上角
+
 
 # --- Utility Functions ---
 
@@ -130,38 +134,46 @@ def draw_tree(countdown_str: str):
 
     # 獲取終端機尺寸
     terminal_width, terminal_height = get_terminal_size()
-
-    # 清空畫面
-    os.system("cls" if os.name == "nt" else "clear")
+    
+    # 使用 ANSI 序列清屏（避免閃爍）
+    print(CLEAR_SCREEN + CURSOR_HOME, end="")
 
     # 計算總內容高度（樹 + 訊息 + 倒數計時器 + 空白行）
     total_content_lines = TOTAL_TREE_BODY_LINES + 4  # 樹 + 訊息行 + 倒數行 + 額外空白
-
+    
     # 計算垂直置中的空白行數
     vertical_padding = max(0, (terminal_height - total_content_lines) // 2)
-
-    # 繪製頂部空白行（垂直置中）
+    
+    # 使用雙緩衝：先構建所有內容，然後一次性輸出
+    output_lines = []
+    
+    # 頂部空白行（垂直置中）
     for _ in range(vertical_padding):
-        print()
+        output_lines.append("")
 
     # 繪製樹的每一行
     for line_idx in range(TOTAL_TREE_BODY_LINES):
         tree_line = _get_tree_line_content(line_idx, terminal_width)
-        print(tree_line)
+        output_lines.append(tree_line)
 
     # 繪製底部訊息 (英文)
     message_content = "MERRY CHRISTMAS!"
     message_padding = " " * ((terminal_width - len(message_content)) // 2)
-    print(f"\n{message_padding}{RED}{message_content}{RESET}")
-
+    output_lines.append("")
+    output_lines.append(f"{message_padding}{RED}{message_content}{RESET}")
+    
     # 繪製倒數計時器
     countdown_width = len(strip_ansi(countdown_str))
     countdown_padding = " " * ((terminal_width - countdown_width) // 2)
-    print(f"\n{countdown_padding}{YELLOW}{countdown_str}{RESET}")
-
-    # 繪製底部空白行（垂直置中）
+    output_lines.append("")
+    output_lines.append(f"{countdown_padding}{YELLOW}{countdown_str}{RESET}")
+    
+    # 底部空白行（垂直置中）
     for _ in range(vertical_padding):
-        print()
+        output_lines.append("")
+    
+    # 一次性輸出所有內容（避免閃爍）
+    print("\n".join(output_lines), end="", flush=True)
 
 
 # --- Main Animation Loop ---
