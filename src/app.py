@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 
 # --- Configuration Constants ---
 
-# 巨型樹的尺寸調整
-HEIGHT = 50
-WIDTH = 100
+# 巨型樹的尺寸調整 (再次加大)
+HEIGHT = 60
+WIDTH = 120
 
 # The total number of lines the tree structure occupies (Star + Branches + Trunk)
 TOTAL_TREE_BODY_LINES = 1 + (HEIGHT // 2) + 5 
@@ -26,8 +26,6 @@ RESET = "\033[0m"
 ORANGE = "\033[38;5;208m"
 GOLD = "\033[38;5;220m"
 PINK = "\033[38;5;200m"
-
-# 新增木頭色 (棕色)
 BROWN = "\033[38;5;94m" # ANSI 256 color code for Brown
 
 # 所有會閃爍的燈泡顏色
@@ -40,34 +38,34 @@ def strip_ansi(s: str) -> str:
     """Removes ANSI escape codes from a string (for accurate width calculation)."""
     return re.sub(r"\033\[.*?m", "", s)
 
-def get_countdown():
+def get_countdown() -> Tuple[str, timedelta]:
     """
     Calculates the time remaining until December 25th of the current year (or next year).
-    Returns a formatted string (天:時:分:秒) and the delta for time control.
+    Returns a formatted string (Days:Hours:Minutes:Seconds) and the delta for time control.
     """
     now = datetime.now()
-    # 目標設定為當前年份的 12 月 25 日 00:00:00
+    # Target is 00:00:00 on December 25th of the current year
     target_date = datetime(now.year, 12, 25, 0, 0, 0)
     
-    # 如果 12/25 已經過了，則設為下一年的 12/25
+    # If 12/25 has passed, target next year's 12/25
     if now > target_date:
         target_date = datetime(now.year + 1, 12, 25, 0, 0, 0)
 
     time_remaining = target_date - now
     
     if time_remaining.total_seconds() <= 0:
-        return (f"{RED}聖誕節到了！{RESET}", timedelta(seconds=1))
+        # 英文提示
+        return (f"{RED}MERRY CHRISTMAS!{RESET}", timedelta(seconds=1))
 
-    # 計算天、時、分、秒
+    # Calculate days, hours, minutes, seconds
     days = time_remaining.days
     hours = time_remaining.seconds // 3600
     minutes = (time_remaining.seconds % 3600) // 60
     seconds = time_remaining.seconds % 60
     
-    # 倒數計時器的格式：天:時:分:秒
-    countdown_str = f"倒數至 {target_date.year} 聖誕節: {days:02}天 {hours:02}時 {minutes:02}分 {seconds:02}秒"
+    # 英文格式：Days:Hrs:Mins:Secs
+    countdown_str = f"COUNTDOWN to Dec 25th, {target_date.year}: {days:02} Days {hours:02} Hrs {minutes:02} Mins {seconds:02} Secs"
     
-    # 返回格式化字串和剩餘的秒數（用於計算下一次更新的時間間隔）
     return (countdown_str, time_remaining)
 
 
@@ -92,7 +90,7 @@ def _get_tree_line_content(line_idx: int) -> str:
 
         branch = ""
         for _ in range(branch_width):
-            if random.random() < 0.1:  # 燈泡閃爍
+            if random.random() < 0.1:  # Light flicker (0.1 density)
                 branch += random.choice(ALL_COLORS) + "●" + GREEN
             else:
                 branch += "▲"
@@ -106,7 +104,7 @@ def _get_tree_line_content(line_idx: int) -> str:
     elif line_idx >= TOTAL_TREE_BODY_LINES - 5 and line_idx < TOTAL_TREE_BODY_LINES:
         trunk_width = HEIGHT // 8
         
-        # ***修正：樹幹顏色改為木頭色 (BROWN)***
+        # 樹幹顏色為木頭色 (BROWN)
         content = BROWN + "█" * trunk_width + RESET
         
         content_width = trunk_width
@@ -129,15 +127,16 @@ def draw_tree(countdown_str: str):
         tree_line = _get_tree_line_content(line_idx)
         print(tree_line)
 
-    # 繪製底部訊息
+    # 繪製底部訊息 (英文)
+    message_content = "MERRY CHRISTMAS!"
     message_line_content = (
-        "\n" + " " * ((WIDTH - 15) // 2) + RED + "Merry Christmas!" + RESET
+        "\n" + " " * ((WIDTH - len(message_content)) // 2) + RED + message_content + RESET
     )
     print(message_line_content)
     
-    # ***新增：繪製倒數計時器***
+    # 繪製倒數計時器
     countdown_width = len(strip_ansi(countdown_str))
-    countdown_padding = " " * ((WIDTH - countdown_width) // 5 * 2)
+    countdown_padding = " " * ((WIDTH - countdown_width) // 2)
     print(f"\n{YELLOW}{countdown_padding}{countdown_str}{RESET}")
     print()
 
@@ -148,7 +147,8 @@ def draw_tree(countdown_str: str):
 def animate():
     """Animates the shining tree and updates the countdown continuously."""
     
-    print("正在繪製巨型聖誕樹並啟動倒數計時器，按 Ctrl+C 停止...")
+    # 程式啟動提示 (英文)
+    print("Drawing Giant Christmas Tree with Countdown. Press Ctrl+C to stop...")
 
     try:
         while True:
@@ -160,17 +160,17 @@ def animate():
 
             # 3. 閃爍與計時控制
             
-            # 計算到下一秒需要等待多久
+            # 計算到下一秒需要等待多久 (確保秒數準確跳動)
             sleep_duration = time_remaining.total_seconds() % 1.0 
             
             # 確保閃爍速度不會太慢 (至少 0.15 秒)
-            # 如果剩餘時間很長，則使用 0.15 秒作為閃爍間隔
             sleep_time = min(0.15, max(0.01, sleep_duration))
 
             time.sleep(sleep_time)
 
     except KeyboardInterrupt:
-        print("\n動畫停止。聖誕快樂！")
+        # 程式停止提示 (英文)
+        print("\nAnimation stopped. Merry Christmas!")
 
 
 if __name__ == "__main__":
