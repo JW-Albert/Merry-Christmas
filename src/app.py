@@ -134,19 +134,19 @@ def draw_tree(countdown_str: str):
 
     # 獲取終端機尺寸
     terminal_width, terminal_height = get_terminal_size()
-    
+
     # 使用 ANSI 序列清屏（避免閃爍）
     print(CLEAR_SCREEN + CURSOR_HOME, end="")
 
     # 計算總內容高度（樹 + 訊息 + 倒數計時器 + 空白行）
     total_content_lines = TOTAL_TREE_BODY_LINES + 4  # 樹 + 訊息行 + 倒數行 + 額外空白
-    
+
     # 計算垂直置中的空白行數
     vertical_padding = max(0, (terminal_height - total_content_lines) // 2)
-    
+
     # 使用雙緩衝：先構建所有內容，然後一次性輸出
     output_lines = []
-    
+
     # 頂部空白行（垂直置中）
     for _ in range(vertical_padding):
         output_lines.append("")
@@ -161,17 +161,17 @@ def draw_tree(countdown_str: str):
     message_padding = " " * ((terminal_width - len(message_content)) // 2)
     output_lines.append("")
     output_lines.append(f"{message_padding}{RED}{message_content}{RESET}")
-    
+
     # 繪製倒數計時器
     countdown_width = len(strip_ansi(countdown_str))
     countdown_padding = " " * ((terminal_width - countdown_width) // 2)
     output_lines.append("")
     output_lines.append(f"{countdown_padding}{YELLOW}{countdown_str}{RESET}")
-    
+
     # 底部空白行（垂直置中）
     for _ in range(vertical_padding):
         output_lines.append("")
-    
+
     # 一次性輸出所有內容（避免閃爍）
     print("\n".join(output_lines), end="", flush=True)
 
