@@ -15,6 +15,10 @@ WIDTH = 120
 # The total number of lines the tree structure occupies (Star + Branches + Trunk)
 TOTAL_TREE_BODY_LINES = 1 + (HEIGHT // 2) + 5
 
+# 動畫更新率（FPS）
+ANIMATION_FPS = 30  # 30 FPS 提供流暢的動畫效果
+FRAME_TIME = 1.0 / ANIMATION_FPS  # 每幀時間（約 0.033 秒）
+
 # Colors (ANSI escape codes)
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -190,18 +194,11 @@ def animate():
             # 1. 計算倒數時間
             countdown_str, time_remaining = get_countdown()
 
-            # 2. 繪製
+            # 2. 繪製（每次循環都繪製，讓燈泡閃爍更流暢）
             draw_tree(countdown_str)
 
-            # 3. 閃爍與計時控制
-
-            # 計算到下一秒需要等待多久 (確保秒數準確跳動)
-            sleep_duration = time_remaining.total_seconds() % 1.0
-
-            # 確保閃爍速度不會太慢 (至少 0.15 秒)
-            sleep_time = min(0.15, max(0.01, sleep_duration))
-
-            time.sleep(sleep_time)
+            # 3. 使用固定高更新率（30 FPS）來減少閃爍
+            time.sleep(FRAME_TIME)
 
     except KeyboardInterrupt:
         # 程式停止提示 (英文)
