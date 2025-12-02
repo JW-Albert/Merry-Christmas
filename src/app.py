@@ -16,7 +16,7 @@ WIDTH = 120
 TOTAL_TREE_BODY_LINES = 1 + (HEIGHT // 2) + 5
 
 # 動畫更新率（FPS）
-ANIMATION_FPS = 30  # 30 FPS 提供流暢的動畫效果
+ANIMATION_FPS =  60  # 30 FPS 提供流暢的動畫效果
 FRAME_TIME = 1.0 / ANIMATION_FPS  # 每幀時間（約 0.033 秒）
 
 # Colors (ANSI escape codes)
